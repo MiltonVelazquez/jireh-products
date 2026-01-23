@@ -53,10 +53,10 @@ public class CalificationController {
         return calificationRepository.findById(id);
     }
 
-    @GetMapping("/search/{input}")
-    public ResponseEntity<List<CalificationEntity>> search(@PathVariable("input") String input){
-        List<CalificationEntity> results = calificationRepository.findByNameContainingIgnoreCase(input);
-        return ResponseEntity.ok(results);
-    }
+    // @GetMapping("/search/{input}")
+    // public ResponseEntity<List<CalificationEntity>> search(@PathVariable("input") String input){
+    //     List<CalificationEntity> results = calificationRepository.findByNameContainingIgnoreCase(input);
+    //     return ResponseEntity.ok(results);
+    // }
 }
 

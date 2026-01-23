@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jireh.productos.models.ProductEntity;
@@ -30,13 +31,20 @@ public class ProductController {
     private ProductRepository productRepository;
 
     @GetMapping
-    public Iterable<ProductEntity> getAll(){
-        return productService.getProducts();
+    public ResponseEntity<Iterable<ProductEntity>> getProducts(
+        @RequestParam(name = "subcategoriaId", required = false) Long subcategoryId) {
+    
+        if (subcategoryId != null) {
+            return ResponseEntity.ok(productService.getProductsBySubcategory(subcategoryId));
+        }
+        return ResponseEntity.ok(productService.getProducts());
     }
 
     @GetMapping("/{id}")
-    public Optional<ProductEntity> getById(@PathVariable("id") Long id){
-        return productService.getProduct(id);
+    public ResponseEntity<ProductEntity> getById(@PathVariable("id") Long id){
+        return productService.getProductAndIncrementView(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -72,14 +80,16 @@ public class ProductController {
         return ResponseEntity.ok(results);
     }
     
-    // filtrar por categoria
-    @GetMapping
-    public ResponseEntity<List<ProductEntity>> getProducts(
-            @RequestParam(name = "subcategoriaId") Long subcategoryId) {
-        
-        List<ProductEntity> productos = productService.getProductsBySubcategory(subcategoryId);
-        
-        return ResponseEntity.ok(productos);
+    // obtoner los 8 mas recientes
+    @GetMapping("/latest")
+    public ResponseEntity<List<ProductEntity>> getLatest() {
+        return ResponseEntity.ok(productRepository.findTop8ByOrderByIdDesc());
+    }
+
+    // obtener los 8 mas recientes o al azar
+    @GetMapping("/trending")
+    public ResponseEntity<List<ProductEntity>> getTrending() {
+        return ResponseEntity.ok(productService.getTopVisited());
     }
 
 }

@@ -48,4 +48,7 @@ public class ProductEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "subcategory_id", nullable = false)
     private SubcategoryEntity subcategory;
+
+    @Column(name = "views")
+    private Long views = 0L;
 }

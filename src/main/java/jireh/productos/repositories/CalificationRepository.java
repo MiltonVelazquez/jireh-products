@@ -7,7 +7,7 @@ import jireh.productos.models.CalificationEntity;
 
 public interface CalificationRepository extends CrudRepository<CalificationEntity, Long>{
 
-    List<CalificationEntity> findByNameContainingIgnoreCase(String description);
+    // List<CalificationEntity> findByNameContainingIgnoreCase(String description);
 
 
 }

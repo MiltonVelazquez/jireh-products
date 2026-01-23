@@ -24,7 +24,7 @@ public class SubcategoryEntity {
 
     @NotBlank
     @Column(name = "name")
-    private String nombre;
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
