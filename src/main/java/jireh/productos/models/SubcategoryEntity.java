@@ -1,5 +1,7 @@
 package jireh.productos.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -28,6 +30,7 @@ public class SubcategoryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
+    @JsonBackReference
     private CategoryEntity category;
 
 

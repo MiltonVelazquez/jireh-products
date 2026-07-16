@@ -1,23 +1,23 @@
 package jireh.productos.controller;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jireh.productos.dto.ProductDTO;
 import jireh.productos.models.ProductEntity;
 import jireh.productos.repositories.ProductRepository;
 import jireh.productos.services.ProductService;
 import java.util.List;
-import java.lang.Iterable;
 
 
 @RestController
@@ -30,66 +30,64 @@ public class ProductController {
     @Autowired
     private ProductRepository productRepository;
 
-    @GetMapping
-    public ResponseEntity<Iterable<ProductEntity>> getProducts(
-        @RequestParam(name = "subcategoriaId", required = false) Long subcategoryId) {
-    
-        if (subcategoryId != null) {
-            return ResponseEntity.ok(productService.getProductsBySubcategory(subcategoryId));
-        }
-        return ResponseEntity.ok(productService.getProducts());
+    @PostMapping
+    //@PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> saveUpdate(@RequestBody ProductEntity productEntity) {
+        productService.saveOrUpdate(productEntity);
+        return ResponseEntity.status(201).build();
     }
 
+    @PutMapping("/{id}")
+    //@PreAuthorize("hasRole('ADMIN')") // Solo admin puede editar
+    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody ProductEntity productEntity) {
+        return productService.getProductDTO(id).map(existing -> {
+            productEntity.setId(id);
+            productService.saveOrUpdate(productEntity);
+            return ResponseEntity.ok().<Void>build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    //@PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Object> delete(@PathVariable("id") @NonNull Long id) {
+    return productRepository.findById(id).map(product -> {
+        product.setActive(false);
+        productRepository.save(product);
+        return ResponseEntity.noContent().build();
+    }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ProductDTO>> getProducts() {
+        return ResponseEntity.ok(productService.getProductsDTO());
+    }
+
+    // GET by ID: 200 OK o 404 Not Found
     @GetMapping("/{id}")
-    public ResponseEntity<ProductEntity> getById(@PathVariable("id") Long id){
+    public ResponseEntity<ProductDTO> getById(@PathVariable("id") Long id) {
         return productService.getProductAndIncrementView(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
-    @PostMapping
-    public void saveUpdate(@RequestBody ProductEntity productEntity){
-        productService.saveOrUpdate(productEntity);
-    }
-
-
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") Long id){
-        productService.delete(id);
-    }
-
-    // buscar
-    @GetMapping("/search/{input}")
-    public ResponseEntity<List<ProductEntity>> search(@PathVariable("input") String input){
-        List<ProductEntity> results = productRepository.findByNameContainingIgnoreCase(input);
-        return ResponseEntity.ok(results);
-    }
-
-    // relacionados
-    @GetMapping("/related/{id}")
-    public ResponseEntity<List<ProductEntity>> getRelatedProducts(@PathVariable Long id) {
-        
-        ProductEntity currentProduct = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-
-        
-        Long subcategoryId = currentProduct.getSubcategory().getId();
-
-        List<ProductEntity> results = productRepository.findTop6BySubcategoryIdAndIdNot(subcategoryId, id);
-
-        return ResponseEntity.ok(results);
-    }
     
-    // obtoner los 8 mas recientes
-    @GetMapping("/latest")
-    public ResponseEntity<List<ProductEntity>> getLatest() {
-        return ResponseEntity.ok(productRepository.findTop8ByOrderByIdDesc());
+    @GetMapping("/search/{input}")
+    public ResponseEntity<List<ProductDTO>> search(@PathVariable("input") String input) {
+        return ResponseEntity.ok(productService.searchProducts(input));
     }
 
-    // obtener los 8 mas recientes o al azar
+    @GetMapping("/related/{id}")
+    public ResponseEntity<List<ProductDTO>> getRelated(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getRelatedProducts(id));
+    }
+
+    @GetMapping("/latest")
+    public ResponseEntity<List<ProductDTO>> getLatest() {
+        return ResponseEntity.ok(productService.getLatestProducts());
+    }
+
     @GetMapping("/trending")
-    public ResponseEntity<List<ProductEntity>> getTrending() {
-        return ResponseEntity.ok(productService.getTopVisited());
+    public ResponseEntity<List<ProductDTO>> getTrending() {
+        return ResponseEntity.ok(productService.getTrendingProducts());
     }
 
 }

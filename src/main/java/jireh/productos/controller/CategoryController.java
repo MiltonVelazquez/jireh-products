@@ -1,10 +1,10 @@
 package jireh.productos.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jireh.productos.dto.CategoryDTO;
 import jireh.productos.models.CategoryEntity;
-import jireh.productos.repositories.CategoryRepository;
 import jireh.productos.services.CategoryService;
 
 
@@ -25,33 +25,40 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    @Autowired
-    private CategoryRepository categoryRepository; 
-
+    // Obtener todas
     @GetMapping
-    public Iterable<CategoryEntity> getAll(){
-        return categoryService.getCategories();
+    public ResponseEntity<List<CategoryDTO>> getAll() {
+        return ResponseEntity.ok(categoryService.getCategories());
     }
 
+    // obtener por id
     @GetMapping("/{id}")
-    public Optional<CategoryEntity> getById(@PathVariable("id") Long id){
-        return categoryService.getCategory(id);
+    public ResponseEntity<CategoryDTO> getById(@PathVariable("id") Long id) {
+        return categoryService.getCategory(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    // Guardar
     @PostMapping
-    public void saveUpdate(@RequestBody CategoryEntity categoryEntity){
+    //@PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> saveUpdate(@RequestBody CategoryEntity categoryEntity) {
         categoryService.saveOrUpdate(categoryEntity);
+        return ResponseEntity.status(201).build();
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") Long id){
+    //@PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         categoryService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
+    // En CategoryController.java
     @GetMapping("/search/{input}")
-    public ResponseEntity<List<CategoryEntity>> search(@PathVariable("input") String input){
-        List<CategoryEntity> results = categoryRepository.findByNameContainingIgnoreCase(input);
-        return ResponseEntity.ok(results);
+    public ResponseEntity<List<CategoryDTO>> search(@PathVariable("input") String input){
+    // Crea este método en CategoryService que devuelva List<CategoryDTO>
+        return ResponseEntity.ok(categoryService.searchCategories(input));
     }
 
 }
