@@ -30,22 +30,48 @@ public class ProductController {
     @Autowired
     private ProductRepository productRepository;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //@PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> saveUpdate(@RequestBody ProductEntity productEntity) {
-        productService.saveOrUpdate(productEntity);
-        return ResponseEntity.status(201).build();
+    public ResponseEntity<Void> saveUpdate(
+        @RequestPart("product") ProductEntity productEntity,
+        @RequestPart(value = "image", required = false) MultipartFile imageFile) {
+        try {
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String imageUrl = cloudinaryService.uploadImage(imageFile);
+                productEntity.setImageUrl(imageUrl);
+            }
+        
+            productService.saveOrUpdate(productEntity);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @PutMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')") // Solo admin puede editar
-    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody ProductEntity productEntity) {
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //@PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> update(
+                            @PathVariable Long id,
+                            @RequestPart("product") ProductEntity productEntity,
+                            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
+        
         return productService.getProductDTO(id).map(existing -> {
-            productEntity.setId(id);
-            productService.saveOrUpdate(productEntity);
-            return ResponseEntity.ok().<Void>build();
+            try {
+                if (imageFile != null && !imageFile.isEmpty()) {
+                    String imageUrl = cloudinaryService.uploadImage(imageFile);
+                    productEntity.setImageUrl(imageUrl);
+                } else {
+                    productEntity.setImageUrl(existing.getImageUrl());
+                }
+
+                productEntity.setId(id);
+                productService.saveOrUpdate(productEntity);
+                return ResponseEntity.ok().<Void>build();
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Void>build();
+            }
         }).orElse(ResponseEntity.notFound().build());
-    }
+        }
 
     @DeleteMapping("/{id}")
     //@PreAuthorize("hasRole('ADMIN')")
