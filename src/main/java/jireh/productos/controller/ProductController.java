@@ -71,7 +71,7 @@ public class ProductController {
                     String imageUrl = cloudinaryService.uploadImage(imageFile);
                     productEntity.setImageUrl(imageUrl);
                 } else {
-                    productEntity.setImageUrl(existing.getImageUrl());
+                    productEntity.setImageUrl(existing.imageUrl());
                 }
 
                 productEntity.setId(id);
