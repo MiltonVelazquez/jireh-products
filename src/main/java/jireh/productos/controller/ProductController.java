@@ -17,11 +17,13 @@ import jireh.productos.dto.ProductDTO;
 import jireh.productos.models.ProductEntity;
 import jireh.productos.repositories.ProductRepository;
 import jireh.productos.services.ProductService;
+import jireh.productos.services.CloudinaryService;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestPart;
+import java.io.IOException;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -34,6 +36,9 @@ public class ProductController {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CloudinaryService cloudinaryService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //@PreAuthorize("hasRole('ADMIN')")
