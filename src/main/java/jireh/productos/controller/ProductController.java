@@ -19,6 +19,11 @@ import jireh.productos.repositories.ProductRepository;
 import jireh.productos.services.ProductService;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+
 
 @RestController
 @RequestMapping(path = "products/product")
