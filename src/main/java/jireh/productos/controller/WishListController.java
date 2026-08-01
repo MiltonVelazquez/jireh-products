@@ -25,7 +25,7 @@ public class WishListController {
 
     @PostMapping
     public ResponseEntity<ProductDTO> save(@RequestBody WishListEntity wishListEntity) {
-        Long userId = wishListEntity.getUser().getId();
+        Long userId = wishListEntity.getUserId();
         Long productId = wishListEntity.getProduct().getId();
 
         if (wishListRepository.existsByUserIdAndProductId(userId, productId)) {
