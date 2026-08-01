@@ -9,12 +9,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "wishlist")
+@Table(
+    name = "wishlist",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_product", columnNames = {"user_id", "product_id"})
+    }
+)
 public class WishListEntity {
 
     @Id
@@ -27,7 +33,7 @@ public class WishListEntity {
     private ProductEntity product;
 
     @NotNull
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
 }
