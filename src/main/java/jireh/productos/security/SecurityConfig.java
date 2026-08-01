@@ -17,6 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import io.jsonwebtoken.io.Decoders;
+
 
 import java.util.Arrays;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -84,9 +86,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder() {
-        String secretKey = "dad7150098c718a48c716173593961ca661da5efc48c158f1d1e46b115afe845"; 
-        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
-    }
+public JwtDecoder jwtDecoder() {
+    String secretKey = "dad7150098c718a48c716173593961ca661da5efc48c158f1d1e46b115afe845";
+    
+    byte[] keyBytes = Decoders.BASE64.decode(secretKey); 
+    
+    SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "HmacSHA256");
+    
+    return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+}
 }
