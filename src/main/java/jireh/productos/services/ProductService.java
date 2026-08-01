@@ -1,5 +1,6 @@
 package jireh.productos.services;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,14 @@ public class ProductService {
     ProductRepository productRepository;
 
     public ProductDTO convertToDTO(ProductEntity product) {
+        if (product == null) {
+            return null;
+        }
+
+        String subcategoryName = (product.getSubcategory() != null) 
+                ? product.getSubcategory().getName() 
+                : null;
+
         return new ProductDTO(
             product.getId(),
             product.getName(),
@@ -24,13 +33,12 @@ public class ProductService {
             product.getDescription(),
             product.getImageUrl(),
             product.getViews(),
-            product.getSubcategory().getName() 
+            subcategoryName
         );
     }
 
-    //obtener todos
+    // obtener todos
     public List<ProductDTO> getProductsDTO() {
-        // Antes: productRepository.findAll()
         List<ProductEntity> products = productRepository.findByActiveTrue(); 
         return products.stream()
                        .map(this::convertToDTO)
@@ -53,6 +61,7 @@ public class ProductService {
         }
         return Optional.empty();
     }
+
     // crear o actualizar
     public void saveOrUpdate(ProductEntity product){
         productRepository.save(product);
@@ -72,7 +81,6 @@ public class ProductService {
         return productRepository.findBySubcategoryIdAndActiveTrue(subcategoryId);
     }
 
-
     public List<ProductDTO> searchProducts(String input) {
         return productRepository.findByNameContainingIgnoreCaseAndActiveTrue(input)
                 .stream().map(this::convertToDTO).toList();
@@ -89,6 +97,10 @@ public class ProductService {
         ProductEntity current = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
         
+        if (current.getSubcategory() == null) {
+            return Collections.emptyList();
+        }
+
         return productRepository.findTop6BySubcategoryIdAndIdNotAndActiveTrue(current.getSubcategory().getId(), id)
                 .stream().map(this::convertToDTO).toList();
     }
