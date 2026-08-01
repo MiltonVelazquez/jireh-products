@@ -1,9 +1,9 @@
 package jireh.productos.controller;
 
 import jireh.productos.dto.ProductDTO;
-import jireh.productos.entity.WishListEntity;
-import jireh.productos.repository.WishListRepository;
-import jireh.productos.service.ProductService;
+import jireh.productos.models.WishListEntity;
+import jireh.productos.repositories.WishListRepository;
+import jireh.productos.services.ProductService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
