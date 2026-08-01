@@ -1,6 +1,8 @@
 package jireh.productos.security;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Arrays;
+import java.util.Base64;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,21 +19,18 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import io.jsonwebtoken.io.Decoders;
 
-
-import java.util.Arrays;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity 
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(withDefaults()) 
+            .cors(withDefaults())
             .csrf(config -> config.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
@@ -77,7 +76,7 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        grantedAuthoritiesConverter.setAuthoritiesClaimName("roles"); 
+        grantedAuthoritiesConverter.setAuthoritiesClaimName("roles");
         grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
@@ -86,13 +85,13 @@ public class SecurityConfig {
     }
 
     @Bean
-public JwtDecoder jwtDecoder() {
-    String secretKey = "dad7150098c718a48c716173593961ca661da5efc48c158f1d1e46b115afe845";
-    
-    byte[] keyBytes = Decoders.BASE64.decode(secretKey); 
-    
-    SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "HmacSHA256");
-    
-    return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
-}
+    public JwtDecoder jwtDecoder() {
+        String secretKey = "dad7150098c718a48c716173593961ca661da5efc48c158f1d1e46b115afe845";
+        
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
+        
+        SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "HmacSHA256");
+        
+        return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
+    }
 }
