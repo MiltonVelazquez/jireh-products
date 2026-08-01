@@ -39,9 +39,9 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.GET, "/products/**", "/category/**", "/subcategory/**", "/product/**").permitAll()
                 
-                .requestMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/products", "/products/").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/products/{id:[0-9]+}").hasRole("ADMIN")
                 
                 .anyRequest().authenticated()
             )
@@ -59,11 +59,10 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
             "https://eddc0f65-a17f-4af9-9774-b722606f3449-00-2zbw4m3gak2ba.worf.replit.dev",
             "https://jireh-frontend-chi.vercel.app",
-            "http://localhost:4200",
-            "http://localhost:8080"
+            "http://localhost:4200"
         ));
         
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
