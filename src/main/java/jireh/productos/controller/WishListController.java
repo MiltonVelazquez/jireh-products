@@ -1,3 +1,18 @@
+package jireh.productos.controller;
+
+import jireh.productos.dto.ProductDTO;
+import jireh.productos.entity.WishListEntity;
+import jireh.productos.repository.WishListRepository;
+import jireh.productos.service.ProductService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "products/wishlist")
 public class WishListController {
@@ -24,7 +39,7 @@ public class WishListController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductDTO> save(@RequestBody WishListEntity wishListEntity, @AuthenticationPrincipal Jwt principal){
+    public ResponseEntity<ProductDTO> save(@RequestBody WishListEntity wishListEntity, @AuthenticationPrincipal Jwt principal) {
         Long userId = getUserIdFromJwt(principal);
         wishListEntity.setUserId(userId);
 
