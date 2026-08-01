@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "products/wishlist")
+@RequestMapping("/products/wishlist")
 public class WishListController {
 
     @Autowired
