@@ -33,7 +33,10 @@ public class SecurityConfig {
             .csrf(config -> config.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/products/**", "/category/**", "/subcategory/**", "/product/**").permitAll()
+                .requestMatchers("/products/wishlist/**").authenticated()
+
+                .requestMatchers(HttpMethod.GET, "/products", "/products/", "/products/{id:[0-9]+}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/category/**", "/subcategory/**", "/product/**").permitAll()
                 
                 .requestMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
@@ -54,7 +57,8 @@ public class SecurityConfig {
         
         configuration.setAllowedOrigins(Arrays.asList(
             "https://eddc0f65-a17f-4af9-9774-b722606f3449-00-2zbw4m3gak2ba.worf.replit.dev",
-            "https://jireh-frontend-chi.vercel.app"
+            "https://jireh-frontend-chi.vercel.app",
+            "http://localhost:4200"
         ));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
