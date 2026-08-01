@@ -20,7 +20,6 @@ import jireh.productos.models.WishListEntity;
 import jireh.productos.repositories.WishListRepository;
 import jireh.productos.services.ProductService;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
@@ -33,22 +32,42 @@ public class WishListController {
     @Autowired
     private ProductService productService;
 
+    private Long extractUserId(Jwt principal) {
+        if (principal == null) {
+            throw new IllegalArgumentException("No se proporcionó token de autenticación");
+        }
+        
+        Object idClaim = principal.getClaim("id");
+        if (idClaim == null) {
+            idClaim = principal.getClaim("userId");
+        }
+
+        if (idClaim instanceof Number) {
+            return ((Number) idClaim).longValue();
+        } else if (idClaim instanceof String) {
+            return Long.valueOf((String) idClaim);
+        }
+
+        String subject = principal.getSubject();
+        try {
+            return Long.valueOf(subject);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("El token JWT no contiene una claim 'id' válida para el usuario");
+        }
+    }
+
     @PostMapping
-    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<ProductDTO> save(@RequestBody WishListEntity wishListEntity, @AuthenticationPrincipal Jwt principal){
-        Long userId = Long.valueOf(principal.getSubject());
+        Long userId = extractUserId(principal);
         wishListEntity.setUserId(userId);
 
         WishListEntity saved = wishListRepository.save(wishListEntity);
-    
-        // Devolvemos el DTO para que el frontend tenga toda la info del producto recién añadido
         return ResponseEntity.status(201).body(productService.convertToDTO(saved.getProduct()));
     }
 
     @DeleteMapping("/deleteWishList/{id}")
-    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<Object> delete(@PathVariable @NonNull Long id, @AuthenticationPrincipal Jwt principal){
-        Long userId = Long.valueOf(principal.getSubject());
+        Long userId = extractUserId(principal);
         Optional<WishListEntity> item = wishListRepository.findById(id);
     
         if (item.isPresent() && item.get().getUserId().equals(userId)) {
@@ -59,20 +78,18 @@ public class WishListController {
     }
 
     @GetMapping
-    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<ProductDTO>> getUserWishList(@AuthenticationPrincipal Jwt principal) {
-        Long userId = Long.valueOf(principal.getSubject());
+        Long userId = extractUserId(principal);
         List<WishListEntity> wishList = wishListRepository.findByUserId(userId);
         
-        // Transformamos directamente a ProductDTO para el frontend
         List<ProductDTO> products = wishList.stream()
                 .map(item -> productService.convertToDTO(item.getProduct())) 
                 .toList();
 
         return ResponseEntity.ok(products);
     }
+
     @GetMapping("/{id}")
-    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<WishListEntity> getById(@PathVariable("id") Long id){
         return wishListRepository.findById(id)
             .map(ResponseEntity::ok)
@@ -80,10 +97,8 @@ public class WishListController {
     }
     
     @DeleteMapping("/product/{productId}")
-    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> deleteByProductId(@PathVariable Long productId, @AuthenticationPrincipal Jwt principal) {
-        
-        Long userId = Long.valueOf(principal.getSubject());
+        Long userId = extractUserId(principal);
 
         WishListEntity wishListItem = wishListRepository.findByUserIdAndProductId(userId, productId)
                 .orElseThrow(() -> new RuntimeException("El producto no se encuentra en tu lista de deseos"));
@@ -92,5 +107,4 @@ public class WishListController {
 
         return ResponseEntity.noContent().build();
     }
-
 }
