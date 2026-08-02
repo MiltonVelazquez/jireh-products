@@ -39,10 +39,11 @@ public class SecurityConfig {
                 .requestMatchers("/products/wishlist", "/products/wishlist/**").authenticated()
 
                 .requestMatchers(HttpMethod.GET, "/products/**", "/category/**", "/subcategory/**", "/product/**").permitAll()
-                
-                //.requestMatchers(HttpMethod.POST, "/products", "/products/").hasRole("ADMIN")
-                //.requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
-                //.requestMatchers(HttpMethod.DELETE, "/products/{id:[0-9]+}").hasRole("ADMIN")
+
+                // llevan .permitAll() solo para testing
+                .requestMatchers(HttpMethod.POST, "/products", "/products/").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/products/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/products/{id:[0-9]+}").permitAll()
                 
                 .anyRequest().authenticated()
             )
