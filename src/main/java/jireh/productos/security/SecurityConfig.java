@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/products/**", "/category/**", "/subcategory/**", "/product/**").permitAll()
 
                 // llevan .permitAll() solo para testing
-                .requestMatchers(HttpMethod.POST, "/products", "/products/").permitAll()
+                .requestMatchers(HttpMethod.POST, "/products", "/products/**").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/products/**").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/products/{id:[0-9]+}").permitAll()
                 
