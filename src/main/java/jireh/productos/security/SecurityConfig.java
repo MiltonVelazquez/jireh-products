@@ -40,9 +40,9 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.GET, "/products/**", "/category/**", "/subcategory/**", "/product/**").permitAll()
                 
-                .requestMatchers(HttpMethod.POST, "/products", "/products/").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/products/{id:[0-9]+}").hasRole("ADMIN")
+                //.requestMatchers(HttpMethod.POST, "/products", "/products/").hasRole("ADMIN")
+                //.requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
+                //.requestMatchers(HttpMethod.DELETE, "/products/{id:[0-9]+}").hasRole("ADMIN")
                 
                 .anyRequest().authenticated()
             )
