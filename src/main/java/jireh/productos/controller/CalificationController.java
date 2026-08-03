@@ -8,14 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.web.bind.annotation.*;
 
 import jireh.productos.dto.ReviewDTO;
 import jireh.productos.models.CalificationEntity;
@@ -24,8 +17,7 @@ import jireh.productos.repositories.CalificationRepository;
 import jireh.productos.repositories.ProductRepository;
 
 @RestController
-@RequestMapping(path = "products/calification")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) 
+@RequestMapping("/products/calification") // <--- Agregada la '/' inicial
 public class CalificationController {
 
     @Autowired
@@ -35,7 +27,7 @@ public class CalificationController {
     private ProductRepository productRepository;
 
     @PostMapping
-    public ResponseEntity<CalificationEntity> save(@RequestBody ReviewDTO dto) {
+    public ResponseEntity<ReviewDTO> save(@RequestBody ReviewDTO dto) {
         ProductEntity product = productRepository.findById(dto.productId())
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + dto.productId()));
 
@@ -49,7 +41,16 @@ public class CalificationController {
         }
 
         CalificationEntity saved = calificationRepository.save(calificationEntity);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+
+        // Devolvemos el DTO explícito para EVITAR que Jackson serialice el proxy de Hibernate (ByteBuddy)
+        ReviewDTO responseDto = new ReviewDTO(
+            saved.getProduct().getId(),
+            saved.getUserId(),
+            saved.getScore() != null ? saved.getScore().intValue() : null,
+            saved.getDescription()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @DeleteMapping("/{id}")
@@ -60,28 +61,24 @@ public class CalificationController {
         CalificationEntity calification = calificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("La calificación con ID " + id + " no existe."));
 
-        boolean isAdmin = principal != null 
-                && principal.getClaimAsStringList("roles") != null 
-                && principal.getClaimAsStringList("roles").contains("ADMIN");
-
         calificationRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/product/{productId}")
-    public ResponseEntity<List<CalificationEntity>> getByProduct(@PathVariable Long productId) {
-        return ResponseEntity.ok(calificationRepository.findByProductId(productId));
-    }
+    public ResponseEntity<List<ReviewDTO>> getByProduct(@PathVariable Long productId) {
+        List<CalificationEntity> entities = calificationRepository.findByProductId(productId);
+        
+        // Mapeamos también la lista a DTOs
+        List<ReviewDTO> dtos = entities.stream()
+                .map(c -> new ReviewDTO(
+                        c.getProduct().getId(),
+                        c.getUserId(),
+                        c.getScore() != null ? c.getScore().intValue() : null,
+                        c.getDescription()
+                ))
+                .toList();
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CalificationEntity> getById(@PathVariable("id") @NonNull Long id) {
-        CalificationEntity calification = calificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("La calificación con ID " + id + " no fue encontrada."));
-        return ResponseEntity.ok(calification);
-    }
-
-    @GetMapping
-    public ResponseEntity<Iterable<CalificationEntity>> getAll() {
-        return ResponseEntity.ok(calificationRepository.findAll());
+        return ResponseEntity.ok(dtos);
     }
 }
