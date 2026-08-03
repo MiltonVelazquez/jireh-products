@@ -35,16 +35,22 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.GET, 
+                    "/products/**", 
+                    "/products/category/**", 
+                    "/products/subcategory/**", 
+                    "/products/califications/**",
+                    "/products/calification/**"
+                ).permitAll()
 
-                .requestMatchers("/products/wishlist", "/products/wishlist/**").authenticated()
+                // Operaciones que requieren autenticación explícita
+                .requestMatchers("/products/wishlist/**").authenticated()
 
-                .requestMatchers(HttpMethod.GET, "/products/**", "/category/**", "/subcategory/**", "/product/**").permitAll()
-
-                // llevan .permitAll() solo para testing
-                .requestMatchers(HttpMethod.POST, "/products", "/products/**").permitAll()
+                // endpoints de creacion publicos para pruebas
+                .requestMatchers(HttpMethod.POST, "/products/**", "/products/category/**", "/products/subcategory/**", "/products/calification/**").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/products/**").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/products/{id:[0-9]+}").permitAll()
-                
+                .requestMatchers(HttpMethod.DELETE, "/products/**").permitAll()
+
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
