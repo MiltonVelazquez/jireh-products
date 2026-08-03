@@ -10,5 +10,5 @@ public record ReviewDTO (
     Long productId,
     Integer rating,
     String comment,
-    LocalDateTime createdAt,
+    LocalDateTime createdAt
 ){}
