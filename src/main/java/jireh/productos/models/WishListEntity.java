@@ -11,9 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 
-@Data
 @Entity
 @Table(
     name = "wishlist",
@@ -36,4 +34,20 @@ public class WishListEntity {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    public WishListEntity() {}
+
+    public WishListEntity(Long id, ProductEntity product, Long userId) {
+        this.id = id;
+        this.product = product;
+        this.userId = userId;
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public ProductEntity getProduct() { return product; }
+    public void setProduct(ProductEntity product) { this.product = product; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }
