@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import java.io.IOException;
 import org.springframework.web.multipart.MultipartFile;
 
-
 @RestController
 @RequestMapping(path = "products/product")
 public class ProductController {
@@ -81,16 +80,16 @@ public class ProductController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).<Void>build();
             }
         }).orElse(ResponseEntity.notFound().build());
-        }
+    }
 
     @DeleteMapping("/{id}")
     //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> delete(@PathVariable("id") @NonNull Long id) {
-    return productRepository.findById(id).map(product -> {
-        product.setActive(false);
-        productRepository.save(product);
-        return ResponseEntity.noContent().build();
-    }).orElse(ResponseEntity.notFound().build());
+        return productRepository.findById(id).map(product -> {
+            product.setActive(false);
+            productRepository.save(product);
+            return ResponseEntity.noContent().build();
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
@@ -104,6 +103,26 @@ public class ProductController {
         return productService.getProductAndIncrementView(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/subcategory/{subcategoryId}")
+    public ResponseEntity<List<ProductDTO>> getBySubcategory(@PathVariable Long subcategoryId) {
+        return ResponseEntity.ok(
+            productService.getProductsBySubcategory(subcategoryId)
+                .stream()
+                .map(productService::convertToDTO)
+                .toList()
+        );
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<ProductDTO>> getByCategory(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(
+            productService.getProductsByCategory(categoryId)
+                .stream()
+                .map(productService::convertToDTO)
+                .toList()
+        );
     }
     
     @GetMapping("/search/{input}")
@@ -125,5 +144,4 @@ public class ProductController {
     public ResponseEntity<List<ProductDTO>> getTrending() {
         return ResponseEntity.ok(productService.getTrendingProducts());
     }
-
 }
