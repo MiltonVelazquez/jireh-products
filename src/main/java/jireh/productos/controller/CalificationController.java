@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jireh.productos.dto.ReviewDTO;
 import jireh.productos.models.CalificationEntity;
+import jireh.productos.models.ProductEntity;
 import jireh.productos.repositories.CalificationRepository;
+import jireh.productos.repositories.ProductRepository;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -27,21 +30,35 @@ public class CalificationController {
     @Autowired
     private CalificationRepository calificationRepository;
 
+    @Autowired
+    private ProductRepository productRepository;
+
     @PostMapping
-    public ResponseEntity<CalificationEntity> save(@RequestBody CalificationEntity calificationEntity) {
+    public ResponseEntity<CalificationEntity> save(@RequestBody ReviewDTO dto) {
+        ProductEntity product = productRepository.findById(dto.getProductId())
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + dto.getProductId()));
+
+        CalificationEntity calificationEntity = new CalificationEntity();
+        calificationEntity.setProduct(product);
+        calificationEntity.setUserId(dto.getUserId());
+        calificationEntity.setDescription(dto.getComment());
+        calificationEntity.setScore(Double.valueOf(dto.getRating()));
+
         CalificationEntity saved = calificationRepository.save(calificationEntity);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);    
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable @NonNull Long id, 
             @AuthenticationPrincipal Jwt principal) {
-        
+
         CalificationEntity calification = calificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("La calificación con ID " + id + " no existe."));
 
-        boolean isAdmin = principal != null && principal.getClaimAsStringList("roles") != null 
+        // Comprobación opcional de roles si el token está presente
+        boolean isAdmin = principal != null 
+                && principal.getClaimAsStringList("roles") != null 
                 && principal.getClaimAsStringList("roles").contains("ADMIN");
 
         if (isAdmin || calification != null) {
