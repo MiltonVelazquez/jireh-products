@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,9 +22,6 @@ import jireh.productos.models.ProductEntity;
 import jireh.productos.repositories.CalificationRepository;
 import jireh.productos.repositories.ProductRepository;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
-
 @RestController
 @RequestMapping(path = "products/calification")
 public class CalificationController {
@@ -35,14 +34,17 @@ public class CalificationController {
 
     @PostMapping
     public ResponseEntity<CalificationEntity> save(@RequestBody ReviewDTO dto) {
-        ProductEntity product = productRepository.findById(dto.getProductId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + dto.getProductId()));
+        ProductEntity product = productRepository.findById(dto.productId())
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + dto.productId()));
 
         CalificationEntity calificationEntity = new CalificationEntity();
         calificationEntity.setProduct(product);
-        calificationEntity.setUserId(dto.getUserId());
-        calificationEntity.setDescription(dto.getComment());
-        calificationEntity.setScore(Double.valueOf(dto.getRating()));
+        calificationEntity.setUserId(dto.userId());
+        calificationEntity.setDescription(dto.comment());
+        
+        if (dto.rating() != null) {
+            calificationEntity.setScore(Double.valueOf(dto.rating()));
+        }
 
         CalificationEntity saved = calificationRepository.save(calificationEntity);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
@@ -56,17 +58,12 @@ public class CalificationController {
         CalificationEntity calification = calificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("La calificación con ID " + id + " no existe."));
 
-        // Comprobación opcional de roles si el token está presente
         boolean isAdmin = principal != null 
                 && principal.getClaimAsStringList("roles") != null 
                 && principal.getClaimAsStringList("roles").contains("ADMIN");
 
-        if (isAdmin || calification != null) {
-            calificationRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            throw new org.springframework.security.access.AccessDeniedException("No tienes permisos para eliminar esta reseña.");
-        }
+        calificationRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/product/{productId}")
