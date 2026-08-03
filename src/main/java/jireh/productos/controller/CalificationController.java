@@ -24,6 +24,7 @@ import jireh.productos.repositories.ProductRepository;
 
 @RestController
 @RequestMapping(path = "products/calification")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) 
 public class CalificationController {
 
     @Autowired
