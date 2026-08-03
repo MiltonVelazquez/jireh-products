@@ -24,25 +24,28 @@ public class WishListController {
     private ProductService productService;
 
     @PostMapping
+    @Transactional
     public ResponseEntity<ProductDTO> save(@RequestBody WishListEntity wishListEntity) {
         Long userId = wishListEntity.getUserId();
         Long productId = wishListEntity.getProduct().getId();
 
         if (wishListRepository.existsByUserIdAndProductId(userId, productId)) {
-            return ResponseEntity.ok(productService.convertToDTO(wishListEntity.getProduct()));
+            ProductDTO dto = (ProductDTO) productService.convertToDTO(wishListEntity.getProduct());
+            return ResponseEntity.ok(dto);
         }
 
         WishListEntity saved = wishListRepository.save(wishListEntity);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(productService.convertToDTO(saved.getProduct()));
+        ProductDTO dto = (ProductDTO) productService.convertToDTO(saved.getProduct());
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ProductDTO>> getUserWishList(@RequestParam Long userId) {
         List<WishListEntity> wishList = wishListRepository.findByUserId(userId);
 
         List<ProductDTO> products = wishList.stream()
-                .map(item -> productService.convertToDTO(item.getProduct()))
+                .map(item -> (ProductDTO) productService.convertToDTO(item.getProduct()))
                 .toList();
 
         return ResponseEntity.ok(products);
@@ -58,7 +61,6 @@ public class WishListController {
         }
 
         wishListRepository.deleteAll(wishListItems);
-
         return ResponseEntity.noContent().build();
     }
 }
