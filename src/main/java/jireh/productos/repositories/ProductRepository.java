@@ -8,29 +8,28 @@ import jakarta.transaction.Transactional;
 import jireh.productos.models.ProductEntity;
 import java.util.List;
 
-
 public interface ProductRepository extends CrudRepository<ProductEntity, Long> {
 
     List<ProductEntity> findByNameContainingIgnoreCaseAndActiveTrue(String name);
 
-    // para productos relacionados
+    // Para productos relacionados
     List<ProductEntity> findTop6BySubcategoryIdAndIdNotAndActiveTrue(Long subcategoryId, Long excludeProductId);
 
-    // para filtrar por categoria
     List<ProductEntity> findBySubcategoryIdAndActiveTrue(Long subcategoryId);
 
+    List<ProductEntity> findBySubcategoryCategoryIdAndActiveTrue(Long categoryId);
 
-    // encontrar ultimos 8 agregados
+    // Encontrar ultimos 8 agregados
     List<ProductEntity> findTop8ByActiveTrueOrderByIdDesc();
     
-    // encontrar los 8 mas visitados
+    // Encontrar los 8 mas visitados
     List<ProductEntity> findTop8ByActiveTrueOrderByViewsDesc();
     
     List<ProductEntity> findTop8ByActiveTrueOrderByCreatedAtDesc();
 
     List<ProductEntity> findByActiveTrue(); 
 
-    // volver las vistas a 0
+    // Volver las vistas a 0
     @Transactional
     @Modifying
     @Query("UPDATE ProductEntity p SET p.views = 0")
