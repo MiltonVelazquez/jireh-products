@@ -18,24 +18,38 @@ public class ProductService {
     ProductRepository productRepository;
 
     public ProductDTO convertToDTO(ProductEntity product) {
-        if (product == null) {
-            return null;
-        }
-
-        String subcategoryName = (product.getSubcategory() != null) 
-                ? product.getSubcategory().getName() 
-                : null;
-
-        return new ProductDTO(
-            product.getId(),
-            product.getName(),
-            product.getPrice(),
-            product.getDescription(),
-            product.getImageUrl(),
-            product.getViews(),
-            subcategoryName
-        );
+    if (product == null) {
+        return null;
     }
+
+    Long subcategoryId = null;
+    String subcategoryName = null;
+    Long categoryId = null;
+    String categoryName = null;
+
+    if (product.getSubcategory() != null) {
+        subcategoryId = product.getSubcategory().getId();
+        subcategoryName = product.getSubcategory().getName();
+
+        if (product.getSubcategory().getCategory() != null) {
+            categoryId = product.getSubcategory().getCategory().getId();
+            categoryName = product.getSubcategory().getCategory().getName();
+        }
+    }
+
+    return new ProductDTO(
+        product.getId(),
+        product.getName(),
+        product.getPrice(),
+        product.getDescription(),
+        product.getImageUrl(),
+        product.getViews(),
+        categoryId,
+        categoryName,
+        subcategoryId,
+        subcategoryName
+    );
+}
 
     // obtener todos
     public List<ProductDTO> getProductsDTO() {
