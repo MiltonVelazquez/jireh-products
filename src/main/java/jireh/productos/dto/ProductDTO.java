@@ -9,5 +9,8 @@ public record ProductDTO(
     String description,
     String imageUrl,
     Long views,
+    Long categoryId,       
+    String categoryName,   
+    Long subcategoryId,    
     String subcategoryName 
 ) {}
