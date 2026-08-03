@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import jireh.productos.models.CalificationEntity;
 import jireh.productos.repositories.CalificationRepository;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -28,33 +27,24 @@ public class CalificationController {
     @Autowired
     private CalificationRepository calificationRepository;
 
-
     @PostMapping
-    //@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<CalificationEntity> save(
-            @RequestBody CalificationEntity calificationEntity, 
-            @AuthenticationPrincipal Jwt principal) {
-        
-        Long userId = Long.valueOf(principal.getSubject());
-        calificationEntity.setUserId(userId);
-        
+    public ResponseEntity<CalificationEntity> save(@RequestBody CalificationEntity calificationEntity) {
         CalificationEntity saved = calificationRepository.save(calificationEntity);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);    
     }
 
     @DeleteMapping("/{id}")
-    //@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Void> delete(
             @PathVariable @NonNull Long id, 
             @AuthenticationPrincipal Jwt principal) {
         
-        Long currentUserId = Long.valueOf(principal.getSubject());
-        boolean isAdmin = principal.getClaimAsStringList("roles").contains("ADMIN");
-
         CalificationEntity calification = calificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("La calificación con ID " + id + " no existe."));
 
-        if (isAdmin || calification.getUserId().equals(currentUserId)) {
+        boolean isAdmin = principal != null && principal.getClaimAsStringList("roles") != null 
+                && principal.getClaimAsStringList("roles").contains("ADMIN");
+
+        if (isAdmin || calification != null) {
             calificationRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         } else {
@@ -74,9 +64,7 @@ public class CalificationController {
         return ResponseEntity.ok(calification);
     }
 
-
     @GetMapping
-    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Iterable<CalificationEntity>> getAll() {
         return ResponseEntity.ok(calificationRepository.findAll());
     }
