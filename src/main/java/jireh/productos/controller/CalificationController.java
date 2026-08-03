@@ -1,5 +1,6 @@
 package jireh.productos.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import jireh.productos.repositories.CalificationRepository;
 import jireh.productos.repositories.ProductRepository;
 
 @RestController
-@RequestMapping("/products/calification") // <--- Agregada la '/' inicial
+@RequestMapping("/products/calification")
 public class CalificationController {
 
     @Autowired
@@ -42,12 +43,16 @@ public class CalificationController {
 
         CalificationEntity saved = calificationRepository.save(calificationEntity);
 
-        // Devolvemos el DTO explícito para EVITAR que Jackson serialice el proxy de Hibernate (ByteBuddy)
+        // Instanciado respetando el orden exacto de ReviewDTO:
+        // (id, userId, userName, productId, rating, comment, createdAt)
         ReviewDTO responseDto = new ReviewDTO(
-            saved.getProduct().getId(),
+            saved.getId(),
             saved.getUserId(),
+            dto.userName() != null ? dto.userName() : "Usuario",
+            saved.getProduct().getId(),
             saved.getScore() != null ? saved.getScore().intValue() : null,
-            saved.getDescription()
+            saved.getDescription(),
+            LocalDateTime.now()
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
@@ -69,13 +74,16 @@ public class CalificationController {
     public ResponseEntity<List<ReviewDTO>> getByProduct(@PathVariable Long productId) {
         List<CalificationEntity> entities = calificationRepository.findByProductId(productId);
         
-        // Mapeamos también la lista a DTOs
+        // Mapeo respetando el orden exacto del record
         List<ReviewDTO> dtos = entities.stream()
                 .map(c -> new ReviewDTO(
-                        c.getProduct().getId(),
+                        c.getId(),
                         c.getUserId(),
+                        "Usuario",
+                        c.getProduct().getId(),
                         c.getScore() != null ? c.getScore().intValue() : null,
-                        c.getDescription()
+                        c.getDescription(),
+                        LocalDateTime.now()
                 ))
                 .toList();
 
